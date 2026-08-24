@@ -38,8 +38,18 @@ time you process an image**, the app downloads the background-removal model
 (~176 MB, one-time) — this is cached in a Docker volume so it survives
 restarts and rebuilds.
 
-Once it's up, open `http://<pi-ip-address>:8000` from any device on your
+Once it's up, open `http://<pi-ip-address>:8080` from any device on your
 network.
+
+If port 8080 is also taken on your Pi, either find and stop whatever's using
+it, or run on a different port without editing the file: create a `.env`
+file next to `docker-compose.yml` containing `HOST_PORT=9000` (or whatever
+port you like), then `docker compose up -d` again. The container always
+listens on 8000 internally; `HOST_PORT` only changes which port it's
+reachable on from outside the container.
+
+To see what's already using a port on the Pi: `sudo ss -tulpn | grep :8000`
+(swap in whatever port number is conflicting).
 
 ### Updating after a code change
 
