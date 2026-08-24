@@ -76,7 +76,11 @@ docker compose up -d
    resolution (so nothing is upscaled beyond what the source actually
    contains), clamped between 320x320 (Tourplay's minimum) and 1600x1600
    (a sensible cap for an icon-sized image). The subject is centered on
-   that square, transparent canvas, scaled to fill ~85% of the frame.
+   that square, transparent canvas with no added margin — its longest edge
+   runs edge-to-edge, so the emblem appears as large as Tourplay's rules
+   allow (they only require it fill *at least* 3/4 of the frame). Any
+   margin you do see is just the natural result of the subject's own
+   aspect ratio on a square canvas, not padding we added.
 4. If the encoded PNG would still exceed Tourplay's 2 MB limit, the tool
    automatically shrinks the canvas further (never below 320x320) until it
    fits.

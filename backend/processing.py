@@ -33,12 +33,12 @@ MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024  # 2 MB
 # processing time for no visible gain.
 MAX_CANVAS_SIZE = 1600
 
-# How much of the square canvas the cropped subject should occupy.
-# Tourplay asks for "at least 3/4" fill, so we default to 0.85 to comfortably
-# clear that bar while leaving a small margin so nothing is clipped by the
-# platform's own display mask (many sites render emblems in a circle/rounded
-# square crop).
-DEFAULT_FILL_RATIO = 0.85
+# How much of the square canvas the cropped subject should occupy. 1.0 means
+# no deliberate margin at all -- the subject's longest edge runs edge-to-edge
+# on the canvas (Tourplay only requires "at least 3/4" fill; we go all the
+# way to maximize how large the emblem appears, per user preference over
+# leaving safety padding for circular/rounded-square display masks).
+DEFAULT_FILL_RATIO = 1.0
 
 # Below this many pixels on either edge, a detected "subject" is treated as
 # noise rather than a real emblem -- not worth composing, better to ask the
