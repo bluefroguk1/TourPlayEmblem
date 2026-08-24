@@ -5,3 +5,4 @@ venv/
 model-cache/
 .DS_Store
 *.log
+.env

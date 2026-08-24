@@ -12,17 +12,12 @@ import io
 import logging
 import os
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
-from processing import (
-    MAX_FILE_SIZE_BYTES,
-    MIN_DIMENSION,
-    get_session,
-    process_image,
-)
+from processing import NoSubjectDetected, get_session, process_image
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("tourplay-icon-tool")
@@ -59,12 +54,7 @@ def health():
 
 
 @app.post("/api/process")
-async def process(
-    file: UploadFile = File(...),
-    canvas_size: int = Query(
-        800, ge=MIN_DIMENSION, le=2048, description="Output width/height in pixels"
-    ),
-):
+async def process(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=400,
@@ -86,7 +76,16 @@ async def process(
         raise HTTPException(status_code=400, detail="File is not a valid image.")
 
     try:
-        result = process_image(raw, canvas_size=canvas_size)
+        result = process_image(raw)
+    except NoSubjectDetected as exc:
+        # Auto-processing couldn't find anything to keep. The frontend
+        # detects this specific header and falls back to a manual crop tool
+        # rather than just showing a dead-end error.
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "no_subject_detected"},
+        )
     except Exception as exc:  # pragma: no cover - defensive
         logger.exception("Processing failed")
         raise HTTPException(status_code=500, detail=f"Processing failed: {exc}")

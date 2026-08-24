@@ -3,7 +3,7 @@ services:
     build: .
     container_name: tourplay-icon-tool
     ports:
-      - "${HOST_PORT:-8080}:8000"
+      - "${HOST_PORT:-8600}:8000"
     volumes:
       # Persists the downloaded background-removal model across container
       # rebuilds/restarts so it isn't re-fetched (~176MB) every time.

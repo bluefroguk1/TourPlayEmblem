@@ -11,11 +11,7 @@
     <header>
       <h1>Team Icon Maker</h1>
       <p class="subtitle">
-        Upload a photo or logo, we'll remove the background and export a
-        PNG that meets
-        <a href="https://tourplay.net/en/support/content/(supportContent:manage-coaches/team-emblems)" target="_blank" rel="noopener">
-          Tourplay.net's team emblem requirements</a>:
-        transparent background, at least 320&times;320px, under 2&nbsp;MB.
+        Upload a photo or logo to convert it to a Tourplay Team Emblem
       </p>
     </header>
 
@@ -29,16 +25,6 @@
         <p><strong>Drag & drop</strong> an image here, or click to choose a file</p>
         <p class="hint">PNG, JPEG, WEBP, BMP or GIF</p>
       </div>
-    </section>
-
-    <section class="options">
-      <label for="canvas-size">Output size</label>
-      <select id="canvas-size">
-        <option value="512">512 &times; 512 px</option>
-        <option value="800" selected>800 &times; 800 px (recommended)</option>
-        <option value="1024">1024 &times; 1024 px</option>
-        <option value="1600">1600 &times; 1600 px</option>
-      </select>
     </section>
 
     <section id="preview-area" class="preview-area" hidden>
@@ -60,6 +46,25 @@
     </section>
 
     <p id="error-msg" class="error" hidden></p>
+
+    <section id="crop-area" class="crop-area" hidden>
+      <p class="crop-hint">
+        Drag the box to the part of the image you want to keep, then confirm.
+      </p>
+      <div id="crop-stage" class="crop-stage">
+        <img id="crop-img" alt="Image to crop" draggable="false" />
+        <div id="crop-box" class="crop-box">
+          <div class="crop-handle" data-handle="nw"></div>
+          <div class="crop-handle" data-handle="ne"></div>
+          <div class="crop-handle" data-handle="sw"></div>
+          <div class="crop-handle" data-handle="se"></div>
+        </div>
+      </div>
+      <div class="crop-actions">
+        <button id="crop-confirm" class="button" type="button">Use this crop</button>
+        <button id="crop-cancel" class="button button--secondary" type="button">Cancel</button>
+      </div>
+    </section>
   </main>
 
   <script src="/app.js"></script>

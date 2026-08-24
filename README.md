@@ -38,18 +38,25 @@ time you process an image**, the app downloads the background-removal model
 (~176 MB, one-time) — this is cached in a Docker volume so it survives
 restarts and rebuilds.
 
-Once it's up, open `http://<pi-ip-address>:8080` from any device on your
+Once it's up, open `http://<pi-ip-address>:8600` from any device on your
 network.
 
-If port 8080 is also taken on your Pi, either find and stop whatever's using
-it, or run on a different port without editing the file: create a `.env`
-file next to `docker-compose.yml` containing `HOST_PORT=9000` (or whatever
-port you like), then `docker compose up -d` again. The container always
-listens on 8000 internally; `HOST_PORT` only changes which port it's
-reachable on from outside the container.
+`8600` was picked because on this Pi, `8000` is Portainer and `8080` was also
+taken. If it's ever taken on yours too, no need to edit any files — just
+create a `.env` next to `docker-compose.yml`:
 
-To see what's already using a port on the Pi: `sudo ss -tulpn | grep :8000`
-(swap in whatever port number is conflicting).
+```
+HOST_PORT=<some other free port>
+```
+
+then `docker compose up -d` again. The container always listens on 8000
+internally; `HOST_PORT` only changes which port it's reachable on from
+outside the container.
+
+To see everything already listening on the Pi (handy for picking a free
+port): `sudo ss -tulpn | grep LISTEN`. Also worth a `docker ps -a` check for
+a stale container still holding a port from an earlier attempt — remove one
+with `docker rm -f <name>` if you find it.
 
 ### Updating after a code change
 
@@ -64,15 +71,30 @@ docker compose up -d
 1. You upload an image (PNG/JPEG/WEBP/BMP/GIF).
 2. A local ML model ([rembg](https://github.com/danielgatis/rembg), U²-Net)
    removes the background, producing a transparent PNG.
-3. The result is cropped to its visible content, then centered on a square
-   transparent canvas at your chosen output size (scaled so the subject
-   fills ~85% of the frame).
-4. If the encoded PNG would exceed Tourplay's 2 MB limit, the tool
-   automatically shrinks the canvas (never below 320x320) until it fits.
-5. You get a preview and a download button.
+3. The result is cropped to its visible content. The output canvas size is
+   then chosen automatically for that specific image: close to its native
+   resolution (so nothing is upscaled beyond what the source actually
+   contains), clamped between 320x320 (Tourplay's minimum) and 1600x1600
+   (a sensible cap for an icon-sized image). The subject is centered on
+   that square, transparent canvas, scaled to fill ~85% of the frame.
+4. If the encoded PNG would still exceed Tourplay's 2 MB limit, the tool
+   automatically shrinks the canvas further (never below 320x320) until it
+   fits.
+5. You get a preview and a download button — no size to choose, every
+   export already satisfies Tourplay's rules.
 
 Everything runs locally on the Pi — no external API calls, no image
 uploads to a third party.
+
+### When automatic background removal can't find a subject
+
+Occasionally the model can't confidently separate a subject from the
+background at all (a texture-heavy photo, a low-contrast image, anything
+without a clear foreground object). Rather than exporting a broken result,
+the tool detects this case and shows a manual crop tool instead: drag a box
+over the part of your original image you want to keep, confirm, and that
+selection is run back through the same pipeline. This only appears as a
+fallback — most uploads never see it.
 
 ### Performance expectations
 
@@ -108,10 +130,10 @@ handling TLS. Keep `.env` out of git (it's already in `.gitignore`).
 
 ## Configuration
 
-Output canvas size is chosen per-upload in the UI (512 / 800 / 1024 / 1600
-px). To change the default or the min/max bounds, edit `frontend/index.html`
-(the `<select id="canvas-size">` options) and the `ge=`/`le=` bounds on the
-`canvas_size` query parameter in `backend/app.py`.
+Output size is fully automatic — there's nothing to pick in the UI. To
+change the bounds it's chosen within, edit `MIN_DIMENSION` (Tourplay's
+required minimum, don't lower this) and `MAX_CANVAS_SIZE` (the upscale cap)
+near the top of `backend/processing.py`.
 
 ## Project layout
 
