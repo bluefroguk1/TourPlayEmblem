@@ -132,6 +132,19 @@ You don't need to open any ports on your router.
 Your tool is now reachable at the hostname you configured, with Cloudflare
 handling TLS. Keep `.env` out of git (it's already in `.gitignore`).
 
+### Stale styling/UI through the tunnel after an update
+
+Cloudflare caches static file types like `.css` and `.js` at its edge by
+default (often for hours), and your browser caches them too — so after
+pulling an update, the tunnel URL can keep showing old CSS/JS well after
+`localhost` already shows the new version. The app sends
+`Cache-Control: no-cache` on every frontend file specifically to prevent
+this, which should stop it from recurring. If you still see stale styling
+right after a deploy: hard-refresh the page (Cmd/Ctrl+Shift+R) to bypass
+your browser's own cache, and if that's not enough, purge the cache for
+that file (or the whole zone) in the Cloudflare dashboard under
+Caching → Configuration.
+
 ## Configuration
 
 Output size is fully automatic — there's nothing to pick in the UI. To

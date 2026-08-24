@@ -12,7 +12,7 @@ import io
 import logging
 import os
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
@@ -37,6 +37,20 @@ ALLOWED_CONTENT_TYPES = {
 }
 
 app = FastAPI(title="Tourplay Team Icon Tool")
+
+
+@app.middleware("http")
+async def no_cache_for_frontend(request: Request, call_next):
+    """Force browsers and any caching proxy in front of this app (e.g. a
+    Cloudflare Tunnel, which by default caches static file types like .css
+    and .js at its edge for hours) to always revalidate the frontend files
+    instead of serving a stale copy after a deploy. `no-cache` still allows
+    an efficient 304 response via the ETag/Last-Modified StaticFiles already
+    sets -- it just stops anything from skipping the check entirely."""
+    response = await call_next(request)
+    if not request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 
 
 @app.on_event("startup")
