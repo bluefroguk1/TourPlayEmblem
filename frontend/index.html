@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Team Icon Maker</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Team Icon Maker</h1>
+      <p class="subtitle">
+        Upload a photo or logo, we'll remove the background and export a
+        PNG that meets
+        <a href="https://tourplay.net/en/support/content/(supportContent:manage-coaches/team-emblems)" target="_blank" rel="noopener">
+          Tourplay.net's team emblem requirements</a>:
+        transparent background, at least 320&times;320px, under 2&nbsp;MB.
+      </p>
+    </header>
+
+    <section id="drop-zone" class="drop-zone">
+      <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp,image/bmp,image/gif" hidden />
+      <div class="drop-zone__prompt">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p><strong>Drag & drop</strong> an image here, or click to choose a file</p>
+        <p class="hint">PNG, JPEG, WEBP, BMP or GIF</p>
+      </div>
+    </section>
+
+    <section class="options">
+      <label for="canvas-size">Output size</label>
+      <select id="canvas-size">
+        <option value="512">512 &times; 512 px</option>
+        <option value="800" selected>800 &times; 800 px (recommended)</option>
+        <option value="1024">1024 &times; 1024 px</option>
+        <option value="1600">1600 &times; 1600 px</option>
+      </select>
+    </section>
+
+    <section id="preview-area" class="preview-area" hidden>
+      <div class="preview-card">
+        <h2>Original</h2>
+        <div class="preview-frame">
+          <img id="original-img" alt="Original upload" />
+        </div>
+      </div>
+      <div class="preview-card">
+        <h2>Result</h2>
+        <div class="preview-frame preview-frame--checker">
+          <img id="result-img" alt="Background-removed result" />
+          <div id="result-spinner" class="spinner" hidden></div>
+        </div>
+        <p id="result-meta" class="result-meta"></p>
+        <a id="download-btn" class="button" download="team-icon.png" hidden>Download PNG</a>
+      </div>
+    </section>
+
+    <p id="error-msg" class="error" hidden></p>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+.git
+.gitignore
+README.md
+*.md
+__pycache__
+*.pyc
+.venv
+venv
+model-cache
+.DS_Store

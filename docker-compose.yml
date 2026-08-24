@@ -1,0 +1,30 @@
+services:
+  tourplay-icon-tool:
+    build: .
+    container_name: tourplay-icon-tool
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persists the downloaded background-removal model across container
+      # rebuilds/restarts so it isn't re-fetched (~176MB) every time.
+      - model-cache:/app/model-cache
+    restart: unless-stopped
+
+  # Optional: exposes the tool to the internet via a Cloudflare Tunnel,
+  # without opening any ports on your router. Uncomment and set
+  # CLOUDFLARE_TUNNEL_TOKEN (see README) when you're ready to go live, then
+  # run: docker compose --profile tunnel up -d
+  #
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: tourplay-icon-tunnel
+  #   command: tunnel run
+  #   environment:
+  #     - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+  #   restart: unless-stopped
+  #   profiles: ["tunnel"]
+  #   depends_on:
+  #     - tourplay-icon-tool
+
+volumes:
+  model-cache:

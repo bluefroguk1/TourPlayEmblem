@@ -1,0 +1,104 @@
+"""
+FastAPI backend for the Tourplay team-icon tool.
+
+Serves:
+  - GET  /                -> the single-page frontend
+  - POST /api/process     -> upload an image, get back a Tourplay-ready PNG
+  - GET  /api/health       -> basic health check (also warms up the model)
+"""
+from __future__ import annotations
+
+import io
+import logging
+import os
+
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi.responses import Response
+from fastapi.staticfiles import StaticFiles
+from PIL import Image
+
+from processing import (
+    MAX_FILE_SIZE_BYTES,
+    MIN_DIMENSION,
+    get_session,
+    process_image,
+)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("tourplay-icon-tool")
+
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(APP_DIR, "..", "frontend")
+
+# Accept fairly generous uploads (phone photos etc.) but keep a sane cap so a
+# huge file can't tie up the Pi for minutes.
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB
+ALLOWED_CONTENT_TYPES = {
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/bmp",
+    "image/gif",
+}
+
+app = FastAPI(title="Tourplay Team Icon Tool")
+
+
+@app.on_event("startup")
+def _warm_up_model() -> None:
+    # Loading the ONNX model takes a couple of seconds; do it once at startup
+    # rather than on the first user request.
+    logger.info("Loading background-removal model...")
+    get_session()
+    logger.info("Model ready.")
+
+
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.post("/api/process")
+async def process(
+    file: UploadFile = File(...),
+    canvas_size: int = Query(
+        800, ge=MIN_DIMENSION, le=2048, description="Output width/height in pixels"
+    ),
+):
+    if file.content_type not in ALLOWED_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type '{file.content_type}'. "
+            f"Please upload a PNG, JPEG, WEBP, BMP, or GIF image.",
+        )
+
+    raw = await file.read()
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large ({len(raw) / 1_000_000:.1f} MB). "
+            f"Max upload size is {MAX_UPLOAD_BYTES / 1_000_000:.0f} MB.",
+        )
+
+    try:
+        Image.open(io.BytesIO(raw)).verify()
+    except Exception:
+        raise HTTPException(status_code=400, detail="File is not a valid image.")
+
+    try:
+        result = process_image(raw, canvas_size=canvas_size)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.exception("Processing failed")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {exc}")
+
+    headers = {
+        "X-Output-Width": str(result.width),
+        "X-Output-Height": str(result.height),
+        "X-Output-Bytes": str(result.file_size_bytes),
+        "Access-Control-Expose-Headers": "X-Output-Width, X-Output-Height, X-Output-Bytes",
+    }
+    return Response(content=result.png_bytes, media_type="image/png", headers=headers)
+
+
+# Serve the frontend last so it doesn't shadow the /api routes above.
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
