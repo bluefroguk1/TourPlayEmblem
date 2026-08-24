@@ -29,17 +29,31 @@ body {
   padding: 40px 20px 80px;
 }
 
+header {
+  text-align: center;
+}
+
 header h1 {
-  /* Matches the heading style used on tourplay.net's team-emblem support
-     page (font-weight, size, letter-spacing, capitalization). Color is kept
-     as our own --text token rather than their literal near-black, since
-     this page uses a dark theme and their color would be unreadable here. */
+  /* Matches tourplay.net's own ".title-gradient.bb-title.bb-title--big"
+     class (used on their team-emblem support page): a diagonal gold-to-red
+     gradient clipped to the text, same font-weight/size/letter-spacing/
+     capitalization. display:inline-block so the element -- and therefore
+     the gradient, which spans its own box -- shrinks to the text instead
+     of stretching across the full centered header. `color` is a solid
+     fallback (kept as our own --text token rather than their literal
+     near-black, since this page uses a dark theme) for the rare browser
+     that doesn't support background-clip: text. */
+  display: inline-block;
   font-size: 32px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: capitalize;
-  text-align: center;
   margin-bottom: 6px;
+  background-image: linear-gradient(115deg, #ffc107 0%, #dd1606 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--text);
 }
 
 .subtitle {
@@ -47,9 +61,8 @@ header h1 {
   font-size: 0.95rem;
   line-height: 1.5;
   max-width: 640px;
+  margin: 0 auto;
 }
-
-.subtitle a { color: var(--accent); }
 
 .drop-zone {
   margin-top: 28px;
